@@ -1,0 +1,6 @@
+@KobiPanel.API_HostAddress = http://localhost:5272
+
+GET {{KobiPanel.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
