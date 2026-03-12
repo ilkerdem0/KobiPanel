@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import api from "../services/api";
 import { Plus, Search, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Customers() {
   const { businessId } = useAuth();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<any>({ items: [], totalCount: 0 });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -84,7 +86,7 @@ export default function Customers() {
             <tbody className="divide-y divide-gray-100">
               {customers.items?.map((c: any) => (
                 <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-800">{c.fullName}</td>
+                 <td className="px-6 py-4 text-sm font-medium text-blue-600 cursor-pointer hover:underline" onClick={() => navigate(`/customers/${c.id}`)}>{c.fullName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{c.phoneNumber || "-"}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">₺{c.totalSpent?.toFixed(2)}</td>
                   <td className="px-6 py-4 text-right">

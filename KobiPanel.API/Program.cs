@@ -50,6 +50,7 @@ builder.Services.AddScoped<KobiPanel.Business.Services.BusinessService>();
 builder.Services.AddScoped<KobiPanel.Business.Services.CustomerService>();
 builder.Services.AddScoped<KobiPanel.Business.Services.TransactionService>();
 builder.Services.AddScoped<KobiPanel.Business.Services.DashboardService>();
+builder.Services.AddScoped<KobiPanel.Business.Services.InvoiceService>();
 // ===== CONTROLLERS & SWAGGER =====
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -6,7 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import Transactions from "./pages/Transactions";
 import Layout from "./components/Layout";
-
+import Invoices from "./pages/Invoices";
+import CustomerDetail from "./pages/CustomerDetail";
 // Auth Context
 interface AuthContextType {
   token: string | null;
@@ -62,7 +63,9 @@ function App() {
           <Route path="/" element={token ? <Layout /> : <Navigate to="/login" />}>
             <Route index element={<Dashboard />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="customers/:customerId" element={<CustomerDetail />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="invoices" element={<Invoices />} />
           </Route>
         </Routes>
       </BrowserRouter>

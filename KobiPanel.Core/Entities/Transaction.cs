@@ -7,6 +7,9 @@ public class Transaction : BaseEntity
     public string Type { get; set; } = "Expense";
     public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
     public string? PaymentMethod { get; set; }
+    public bool IsScheduled { get; set; } = false; // Vadeli mi?
+    public DateTime? DueDate { get; set; } // Vade tarihi
+    public string PaymentStatus { get; set; } = "Completed"; // Completed, Pending, Overdue
 
     public int BusinessId { get; set; }
     public Business Business { get; set; } = null!;
