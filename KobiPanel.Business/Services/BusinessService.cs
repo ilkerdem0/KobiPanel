@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using KobiPanel.Core.Entities;
+using KobiPanel.Core.Exceptions;
 using KobiPanel.Infrastructure.Data;
 
 namespace KobiPanel.Business.Services;
@@ -53,7 +54,7 @@ public class BusinessService
             .FirstOrDefaultAsync(b => b.Id == businessId && b.OwnerId == userId);
 
         if (business == null)
-            throw new Exception("İşletme bulunamadı.");
+            throw new NotFoundException("İşletme bulunamadı.");
 
         return MapToResponse(business);
     }
@@ -64,7 +65,7 @@ public class BusinessService
             .FirstOrDefaultAsync(b => b.Id == businessId && b.OwnerId == userId);
 
         if (business == null)
-            throw new Exception("İşletme bulunamadı.");
+            throw new NotFoundException("İşletme bulunamadı.");
 
         business.Name = name;
         business.Description = description;
@@ -84,7 +85,7 @@ public class BusinessService
             .FirstOrDefaultAsync(b => b.Id == businessId && b.OwnerId == userId);
 
         if (business == null)
-            throw new Exception("İşletme bulunamadı.");
+            throw new NotFoundException("İşletme bulunamadı.");
 
         business.IsDeleted = true;
         await _context.SaveChangesAsync();

@@ -32,17 +32,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        try
-        {
-            var result = await _authService.RegisterAsync(
-                request.FirstName, request.LastName,
-                request.Email, request.Password, request.PhoneNumber);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _authService.RegisterAsync(
+            request.FirstName, request.LastName,
+            request.Email, request.Password, request.PhoneNumber);
+        return Ok(result);
     }
 
     /// <summary>
@@ -51,15 +44,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        try
-        {
-            var result = await _authService.LoginAsync(request.Email, request.Password);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _authService.LoginAsync(request.Email, request.Password);
+        return Ok(result);
     }
 
     /// <summary>
@@ -68,22 +54,15 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     {
-        try
-        {
-            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+        return Ok(result);
     }
 
     /// <summary>
     /// Çıkış yap
     /// </summary>
+    // Refresh token'a sahip olmak iptal için yeterli; access token süresi dolmuş olsa da çıkış yapılabilmeli
     [HttpPost("logout")]
-    [Authorize]
     public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
     {
         await _authService.RevokeTokenAsync(request.RefreshToken);

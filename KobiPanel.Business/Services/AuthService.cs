@@ -1,4 +1,5 @@
 ﻿using KobiPanel.Core.Entities;
+using KobiPanel.Core.Exceptions;
 using KobiPanel.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +27,7 @@ public class AuthService
     {
         // Email kontrolu
         if (await _context.Users.AnyAsync(u => u.Email == email))
-            throw new Exception("Bu email adresi zaten kayıtlı.");
+            throw new ConflictException("Bu email adresi zaten kayıtlı.");
 
         var user = new User
         {
@@ -48,7 +49,7 @@ public class AuthService
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            throw new Exception("Email veya şifre hatalı.");
+            throw new UnauthorizedException("Email veya şifre hatalı.");
 
         return await GenerateAuthResponse(user);
     }
@@ -60,7 +61,7 @@ public class AuthService
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
         if (token == null || !token.IsActive)
-            throw new Exception("Geçersiz veya süresi dolmuş token.");
+            throw new UnauthorizedException("Geçersiz veya süresi dolmuş token.");
 
         // Eski token'i iptal et
         token.IsRevoked = true;

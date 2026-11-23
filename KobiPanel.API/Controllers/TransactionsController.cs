@@ -28,19 +28,12 @@ public class TransactionsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(int businessId, [FromBody] CreateTransactionRequest request)
     {
-        try
-        {
-            var result = await _transactionService.CreateAsync(
-                businessId, request.Description, request.Amount,
-                request.Type, request.TransactionDate, request.PaymentMethod,
-                request.CategoryId, request.CustomerId,
-                request.IsScheduled, request.DueDate);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _transactionService.CreateAsync(
+            businessId, request.Description, request.Amount,
+            request.Type, request.TransactionDate, request.PaymentMethod,
+            request.CategoryId, request.CustomerId,
+            request.IsScheduled, request.DueDate);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -67,28 +60,14 @@ public class TransactionsController : ControllerBase
     [HttpPut("{transactionId}/complete")]
     public async Task<IActionResult> MarkAsCompleted(int businessId, int transactionId)
     {
-        try
-        {
-            var result = await _transactionService.MarkAsCompletedAsync(businessId, transactionId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _transactionService.MarkAsCompletedAsync(businessId, transactionId);
+        return Ok(result);
     }
 
     [HttpDelete("{transactionId}")]
     public async Task<IActionResult> Delete(int businessId, int transactionId)
     {
-        try
-        {
-            await _transactionService.DeleteAsync(businessId, transactionId);
-            return Ok(new { message = "İşlem silindi" });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _transactionService.DeleteAsync(businessId, transactionId);
+        return Ok(new { message = "İşlem silindi" });
     }
 }

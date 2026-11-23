@@ -31,18 +31,11 @@ public class BusinessesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateBusinessRequest request)
     {
-        try
-        {
-            var result = await _businessService.CreateAsync(
-                GetUserId(), request.Name, request.Description,
-                request.Address, request.PhoneNumber, request.Email,
-                request.TaxNumber, request.BusinessType);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _businessService.CreateAsync(
+            GetUserId(), request.Name, request.Description,
+            request.Address, request.PhoneNumber, request.Email,
+            request.TaxNumber, request.BusinessType);
+        return Ok(result);
     }
 
     /// <summary>
@@ -61,15 +54,8 @@ public class BusinessesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        try
-        {
-            var result = await _businessService.GetByIdAsync(GetUserId(), id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _businessService.GetByIdAsync(GetUserId(), id);
+        return Ok(result);
     }
 
     /// <summary>
@@ -78,18 +64,11 @@ public class BusinessesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] CreateBusinessRequest request)
     {
-        try
-        {
-            var result = await _businessService.UpdateAsync(
-                GetUserId(), id, request.Name, request.Description,
-                request.Address, request.PhoneNumber, request.Email,
-                request.TaxNumber, request.BusinessType);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _businessService.UpdateAsync(
+            GetUserId(), id, request.Name, request.Description,
+            request.Address, request.PhoneNumber, request.Email,
+            request.TaxNumber, request.BusinessType);
+        return Ok(result);
     }
 
     /// <summary>
@@ -98,14 +77,7 @@ public class BusinessesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            await _businessService.DeleteAsync(GetUserId(), id);
-            return Ok(new { message = "İşletme silindi" });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _businessService.DeleteAsync(GetUserId(), id);
+        return Ok(new { message = "İşletme silindi" });
     }
 }

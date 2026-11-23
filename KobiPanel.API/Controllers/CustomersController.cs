@@ -29,17 +29,10 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(int businessId, [FromBody] CreateCustomerRequest request)
     {
-        try
-        {
-            var result = await _customerService.CreateAsync(
-                businessId, request.FirstName, request.LastName,
-                request.PhoneNumber, request.Email, request.Notes);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _customerService.CreateAsync(
+            businessId, request.FirstName, request.LastName,
+            request.PhoneNumber, request.Email, request.Notes);
+        return Ok(result);
     }
 
     /// <summary>
@@ -58,15 +51,8 @@ public class CustomersController : ControllerBase
     [HttpGet("{customerId}")]
     public async Task<IActionResult> GetById(int businessId, int customerId)
     {
-        try
-        {
-            var result = await _customerService.GetByIdAsync(businessId, customerId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _customerService.GetByIdAsync(businessId, customerId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -75,17 +61,10 @@ public class CustomersController : ControllerBase
     [HttpPut("{customerId}")]
     public async Task<IActionResult> Update(int businessId, int customerId, [FromBody] CreateCustomerRequest request)
     {
-        try
-        {
-            var result = await _customerService.UpdateAsync(
-                businessId, customerId, request.FirstName, request.LastName,
-                request.PhoneNumber, request.Email, request.Notes);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _customerService.UpdateAsync(
+            businessId, customerId, request.FirstName, request.LastName,
+            request.PhoneNumber, request.Email, request.Notes);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,14 +73,7 @@ public class CustomersController : ControllerBase
     [HttpDelete("{customerId}")]
     public async Task<IActionResult> Delete(int businessId, int customerId)
     {
-        try
-        {
-            await _customerService.DeleteAsync(businessId, customerId);
-            return Ok(new { message = "Müşteri silindi" });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _customerService.DeleteAsync(businessId, customerId);
+        return Ok(new { message = "Müşteri silindi" });
     }
 }

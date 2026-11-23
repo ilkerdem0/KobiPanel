@@ -28,17 +28,10 @@ public class InvoicesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(int businessId, [FromBody] CreateInvoiceRequest request)
     {
-        try
-        {
-            var result = await _invoiceService.CreateAsync(
-                businessId, request.CustomerId, request.DueDate,
-                request.TaxRate, request.Notes, request.Items);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _invoiceService.CreateAsync(
+            businessId, request.CustomerId, request.DueDate,
+            request.TaxRate, request.Notes, request.Items);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -51,42 +44,21 @@ public class InvoicesController : ControllerBase
     [HttpGet("{invoiceId}")]
     public async Task<IActionResult> GetById(int businessId, int invoiceId)
     {
-        try
-        {
-            var result = await _invoiceService.GetByIdAsync(businessId, invoiceId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _invoiceService.GetByIdAsync(businessId, invoiceId);
+        return Ok(result);
     }
 
     [HttpPut("{invoiceId}/status")]
     public async Task<IActionResult> UpdateStatus(int businessId, int invoiceId, [FromBody] UpdateStatusRequest request)
     {
-        try
-        {
-            var result = await _invoiceService.UpdateStatusAsync(businessId, invoiceId, request.Status);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var result = await _invoiceService.UpdateStatusAsync(businessId, invoiceId, request.Status);
+        return Ok(result);
     }
 
     [HttpDelete("{invoiceId}")]
     public async Task<IActionResult> Delete(int businessId, int invoiceId)
     {
-        try
-        {
-            await _invoiceService.DeleteAsync(businessId, invoiceId);
-            return Ok(new { message = "Fatura silindi" });
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _invoiceService.DeleteAsync(businessId, invoiceId);
+        return Ok(new { message = "Fatura silindi" });
     }
 }

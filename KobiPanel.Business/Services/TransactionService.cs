@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using KobiPanel.Core.Entities;
+using KobiPanel.Core.Exceptions;
 using KobiPanel.Infrastructure.Data;
 
 namespace KobiPanel.Business.Services;
@@ -17,11 +18,11 @@ public class TransactionService
     {
         if (customerId.HasValue &&
             !await _context.Customers.AnyAsync(c => c.Id == customerId.Value && c.BusinessId == businessId))
-            throw new Exception("Müşteri bulunamadı.");
+            throw new BadRequestException("Müşteri bulunamadı.");
 
         if (categoryId.HasValue &&
             !await _context.TransactionCategories.AnyAsync(c => c.Id == categoryId.Value && c.BusinessId == businessId))
-            throw new Exception("Kategori bulunamadı.");
+            throw new BadRequestException("Kategori bulunamadı.");
 
         var paymentStatus = "Completed";
         if (isScheduled && dueDate.HasValue)
@@ -129,7 +130,7 @@ public class TransactionService
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.BusinessId == businessId);
 
         if (transaction == null)
-            throw new Exception("İşlem bulunamadı.");
+            throw new NotFoundException("İşlem bulunamadı.");
 
         transaction.PaymentStatus = "Completed";
         transaction.IsScheduled = false;
@@ -151,7 +152,7 @@ public class TransactionService
             .FirstOrDefaultAsync(t => t.Id == transactionId && t.BusinessId == businessId);
 
         if (transaction == null)
-            throw new Exception("İşlem bulunamadı.");
+            throw new NotFoundException("İşlem bulunamadı.");
 
         transaction.IsDeleted = true;
         await _context.SaveChangesAsync();

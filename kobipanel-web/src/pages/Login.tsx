@@ -16,7 +16,7 @@ export default function Login() {
     setError("");
     try {
       const res = await api.post("/Auth/login", { email, password });
-      login(res.data.accessToken, res.data.userId, res.data.fullName);
+      login(res.data.accessToken, res.data.refreshToken, res.data.userId, res.data.fullName);
     } catch (err: any) {
       setError(err.response?.data?.message || "Giriş başarısız");
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using KobiPanel.Core.Entities;
+using KobiPanel.Core.Exceptions;
 using KobiPanel.Infrastructure.Data;
 
 namespace KobiPanel.Business.Services;
@@ -17,7 +18,7 @@ public class InvoiceService
     {
         if (customerId.HasValue &&
             !await _context.Customers.AnyAsync(c => c.Id == customerId.Value && c.BusinessId == businessId))
-            throw new Exception("Müşteri bulunamadı.");
+            throw new BadRequestException("Müşteri bulunamadı.");
 
         var subTotal = items.Sum(i => i.Quantity * i.UnitPrice);
         var taxAmount = subTotal * taxRate / 100;
@@ -132,7 +133,7 @@ public class InvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoiceId && i.BusinessId == businessId);
 
         if (invoice == null)
-            throw new Exception("Fatura bulunamadı.");
+            throw new NotFoundException("Fatura bulunamadı.");
 
         return await MapToResponse(invoice);
     }
@@ -145,7 +146,7 @@ public class InvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoiceId && i.BusinessId == businessId);
 
         if (invoice == null)
-            throw new Exception("Fatura bulunamadı.");
+            throw new NotFoundException("Fatura bulunamadı.");
 
         invoice.Status = status;
         await _context.SaveChangesAsync();
@@ -159,7 +160,7 @@ public class InvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoiceId && i.BusinessId == businessId);
 
         if (invoice == null)
-            throw new Exception("Fatura bulunamadı.");
+            throw new NotFoundException("Fatura bulunamadı.");
 
         invoice.IsDeleted = true;
         await _context.SaveChangesAsync();

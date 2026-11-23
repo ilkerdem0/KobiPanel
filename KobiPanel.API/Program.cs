@@ -1,5 +1,9 @@
-﻿using KobiPanel.Infrastructure.Data;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using KobiPanel.API.Infrastructure;
+using KobiPanel.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
@@ -59,7 +63,26 @@ builder.Services.AddScoped<KobiPanel.Business.Services.TransactionService>();
 builder.Services.AddScoped<KobiPanel.Business.Services.DashboardService>();
 builder.Services.AddScoped<KobiPanel.Business.Services.InvoiceService>();
 // ===== CONTROLLERS & SWAGGER =====
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Doğrulama hataları da diğer hatalar gibi { message } döner (frontend bunu okur);
+        // alan bazlı detaylar ayrıca "errors" altında verilir.
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(e => e.Value?.Errors.Count > 0)
+                .ToDictionary(e => e.Key, e => e.Value!.Errors.Select(x => x.ErrorMessage).ToArray());
+            var message = errors.Values.SelectMany(x => x).FirstOrDefault() ?? "Geçersiz istek.";
+            return new BadRequestObjectResult(new { message, errors });
+        };
+    });
+
+// ===== DOĞRULAMA & HATA YÖNETİMİ =====
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddExceptionHandler<AppExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -100,6 +123,8 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // ===== MIDDLEWARE =====
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

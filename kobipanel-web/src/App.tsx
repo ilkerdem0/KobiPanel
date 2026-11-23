@@ -8,13 +8,14 @@ import Transactions from "./pages/Transactions";
 import Layout from "./components/Layout";
 import Invoices from "./pages/Invoices";
 import CustomerDetail from "./pages/CustomerDetail";
+import { revokeRefreshToken } from "./services/api";
 // Auth Context
 interface AuthContextType {
   token: string | null;
   userId: number | null;
   businessId: number | null;
   fullName: string | null;
-  login: (token: string, userId: number, fullName: string) => void;
+  login: (token: string, refreshToken: string, userId: number, fullName: string) => void;
   logout: () => void;
   setBusinessId: (id: number) => void;
 }
@@ -32,16 +33,18 @@ function App() {
   );
   const [fullName, setFullName] = useState<string | null>(localStorage.getItem("fullName"));
 
-  const login = (newToken: string, newUserId: number, newFullName: string) => {
+  const login = (newToken: string, newRefreshToken: string, newUserId: number, newFullName: string) => {
     setToken(newToken);
     setUserId(newUserId);
     setFullName(newFullName);
     localStorage.setItem("token", newToken);
+    localStorage.setItem("refreshToken", newRefreshToken);
     localStorage.setItem("userId", String(newUserId));
     localStorage.setItem("fullName", newFullName);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await revokeRefreshToken();
     setToken(null);
     setUserId(null);
     setBusinessId(null);

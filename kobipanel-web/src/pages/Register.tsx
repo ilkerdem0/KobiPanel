@@ -17,7 +17,7 @@ export default function Register() {
     setError("");
     try {
       const res = await api.post("/Auth/register", form);
-      login(res.data.accessToken, res.data.userId, res.data.fullName);
+      login(res.data.accessToken, res.data.refreshToken, res.data.userId, res.data.fullName);
     } catch (err: any) {
       setError(err.response?.data?.message || "Kayıt başarısız");
     }
