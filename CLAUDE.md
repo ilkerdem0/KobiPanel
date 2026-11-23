@@ -41,7 +41,7 @@ npm run build
 npm test                                   # Jest via react-scripts (watch mode)
 npm test -- --watchAll=false -t "<name>"   # single test, non-interactive
 ```
-There are no CI workflows (`.github/workflows/` is empty).
+CI (`.github/workflows/ci.yml`) runs backend build + tests and frontend `npm ci`, `tsc --noEmit` and `npm run build` on pushes and PRs to `master`. The frontend build runs with `CI=false` because of existing ESLint warnings; new code should not add more.
 
 ## Architecture
 
@@ -60,9 +60,9 @@ Multi-tenancy: everything except Auth and Businesses is scoped under `api/busine
 
 Ownership of `{businessId}` is enforced by the `[BusinessOwner]` filter (`KobiPanel.API/Filters/BusinessOwnerAttribute.cs`, backed by `BusinessService.IsOwnerAsync`), which returns 404 for businesses the caller doesn't own. Any new business-scoped controller must carry `[BusinessOwner]` next to `[Authorize]`. Services must also verify that foreign keys taken from the request body (`customerId`, `categoryId`, …) belong to the same `businessId`.
 
-Auth: JWT bearer (settings in `JwtSettings` of `appsettings.json`) plus a `RefreshToken` entity; passwords are hashed with BCrypt in `AuthService`. Refresh tokens rotate: each `/Auth/refresh` revokes the old token. `/Auth/logout` revokes a refresh token and needs no access token. CORS policy `AllowFrontend` allows only `http://localhost:3000`.
+Auth: JWT bearer (settings in `JwtSettings` of `appsettings.json`) plus a `RefreshToken` entity; passwords are hashed with BCrypt in `AuthService`. Refresh tokens rotate: each `/Auth/refresh` revokes the old token. `/Auth/logout` revokes a refresh token and needs no access token. The CORS policy `AllowFrontend` reads its origins from `Cors:AllowedOrigins` (default `http://localhost:3000`). The API fails at startup if that setting is empty.
 
 Frontend:
-- `src/services/api.ts` — shared axios instance with hardcoded `baseURL` `https://localhost:7245/api`, attaches the `Bearer` token from `localStorage`. On a 401 from a non-`/Auth/` request, it calls `/Auth/refresh` once (one shared request for concurrent 401s), stores the new `token`/`refreshToken` and retries; if the refresh fails, it clears storage and redirects to `/login`.
+- `src/services/api.ts` — shared axios instance. Its `baseURL` comes from `REACT_APP_API_URL` (see `.env.example`) and defaults to `https://localhost:7245/api`. Use `getErrorMessage(err, fallback)` from here to show the API's `{ message }`; don't swallow errors with an empty `catch {}`. The instance attaches the `Bearer` token from `localStorage`. On a 401 from a non-`/Auth/` request, it calls `/Auth/refresh` once (one shared request for concurrent 401s), stores the new `token`/`refreshToken` and retries; if the refresh fails, it clears storage and redirects to `/login`.
 - `src/App.tsx` — defines `AuthContext`/`useAuth()` holding `token`, `userId`, `businessId`, `fullName` (all mirrored in `localStorage`) and the routes. Authenticated pages render inside `components/Layout.tsx`; pages build business-scoped URLs from `useAuth().businessId`.
 - Styling is Tailwind utility classes; icons from `lucide-react`; charts via Recharts.

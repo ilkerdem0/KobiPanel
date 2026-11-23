@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import api from "../services/api";
+import api, { getErrorMessage } from "../services/api";
 import { Plus, X, Check, Clock, AlertTriangle } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -19,6 +19,7 @@ export default function Transactions() {
     isScheduled: false, dueDate: ""
   });
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     if (businessId) {
@@ -58,6 +59,7 @@ export default function Transactions() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormError("");
     try {
       await api.post(`/businesses/${businessId}/Transactions`, {
         ...form,
@@ -70,12 +72,19 @@ export default function Transactions() {
       loadTransactions();
       loadSummary();
       loadChart();
-    } catch {}
+    } catch (err) {
+      setFormError(getErrorMessage(err, "İşlem eklenemedi"));
+    }
     setLoading(false);
   };
 
   const handleComplete = async (id: number) => {
-    await api.put(`/businesses/${businessId}/Transactions/${id}/complete`);
+    try {
+      await api.put(`/businesses/${businessId}/Transactions/${id}/complete`);
+    } catch (err) {
+      window.alert(getErrorMessage(err, "İşlem tamamlanamadı"));
+      return;
+    }
     loadTransactions();
     loadSummary();
     loadChart();
@@ -83,7 +92,12 @@ export default function Transactions() {
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) {
-      await api.delete(`/businesses/${businessId}/Transactions/${id}`);
+      try {
+        await api.delete(`/businesses/${businessId}/Transactions/${id}`);
+      } catch (err) {
+        window.alert(getErrorMessage(err, "İşlem silinemedi"));
+        return;
+      }
       loadTransactions();
       loadSummary();
       loadChart();
@@ -221,6 +235,7 @@ export default function Transactions() {
               <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
             </div>
             <form onSubmit={handleCreate}>
+              {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{formError}</div>}
               <input placeholder="Açıklama" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-3" required />
               <input type="number" step="0.01" placeholder="Tutar (₺)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-3" required />
               <div className="grid grid-cols-2 gap-3 mb-3">

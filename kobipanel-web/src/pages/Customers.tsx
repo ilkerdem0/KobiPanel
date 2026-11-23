@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import api from "../services/api";
+import api, { getErrorMessage } from "../services/api";
 import { Plus, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,6 +12,7 @@ export default function Customers() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", phoneNumber: "", email: "", notes: "" });
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     if (businessId) loadCustomers();
@@ -27,12 +28,15 @@ export default function Customers() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormError("");
     try {
       await api.post(`/businesses/${businessId}/Customers`, form);
       setForm({ firstName: "", lastName: "", phoneNumber: "", email: "", notes: "" });
       setShowForm(false);
       loadCustomers();
-    } catch {}
+    } catch (err) {
+      setFormError(getErrorMessage(err, "Müşteri eklenemedi"));
+    }
     setLoading(false);
   };
 
@@ -108,6 +112,7 @@ export default function Customers() {
               <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
             </div>
             <form onSubmit={handleCreate}>
+              {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{formError}</div>}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <input placeholder="Ad" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className="px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required />
                 <input placeholder="Soyad" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} className="px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required />

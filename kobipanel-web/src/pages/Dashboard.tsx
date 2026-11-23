@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import api from "../services/api";
+import api, { getErrorMessage } from "../services/api";
 import { TrendingUp, TrendingDown, Users, Clock, Plus, X } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from "recharts";
 
@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [showAddBusiness, setShowAddBusiness] = useState(false);
   const [businessForm, setBusinessForm] = useState({ name: "", description: "", address: "", phoneNumber: "", email: "", taxNumber: "", businessType: "General" });
   const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => { loadBusinesses(); }, []);
   useEffect(() => { if (businessId) { loadDashboard(); loadChart(); } }, [businessId]);
@@ -39,13 +40,16 @@ export default function Dashboard() {
   const handleAddBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
+    setFormError("");
     try {
       const res = await api.post("/Businesses", businessForm);
       setBusinessForm({ name: "", description: "", address: "", phoneNumber: "", email: "", taxNumber: "", businessType: "General" });
       setShowAddBusiness(false);
       await loadBusinesses();
       setBusinessId(res.data.id);
-    } catch {}
+    } catch (err) {
+      setFormError(getErrorMessage(err, "İşletme oluşturulamadı"));
+    }
     setFormLoading(false);
   };
 
@@ -74,6 +78,7 @@ export default function Dashboard() {
             <button onClick={() => setShowAddBusiness(false)}><X size={20} className="text-gray-400" /></button>
           </div>
           <form onSubmit={handleAddBusiness}>
+            {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{formError}</div>}
             <input placeholder="İşletme Adı *" value={businessForm.name} onChange={(e) => setBusinessForm({ ...businessForm, name: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-3" required />
             <input placeholder="Açıklama" value={businessForm.description} onChange={(e) => setBusinessForm({ ...businessForm, description: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-3" />
             <input placeholder="Adres" value={businessForm.address} onChange={(e) => setBusinessForm({ ...businessForm, address: e.target.value })} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-3" />

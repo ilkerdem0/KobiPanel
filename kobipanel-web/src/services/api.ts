@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-const BASE_URL = "https://localhost:7245/api";
+// Build sırasında REACT_APP_API_URL ile değiştirilebilir (bkz. .env.example)
+const BASE_URL = process.env.REACT_APP_API_URL || "https://localhost:7245/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -68,6 +69,10 @@ api.interceptors.response.use(
     }
   }
 );
+
+/** API'nin döndüğü { message } alanını, yoksa verilen yedek mesajı döner. */
+export const getErrorMessage = (err: unknown, fallback: string): string =>
+  (axios.isAxiosError(err) && (err.response?.data as { message?: string } | undefined)?.message) || fallback;
 
 /** Refresh token'ı sunucuda iptal eder; hata olsa da çıkış devam eder. */
 export const revokeRefreshToken = async () => {

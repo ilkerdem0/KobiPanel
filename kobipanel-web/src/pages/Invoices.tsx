@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import api from "../services/api";
+import api, { getErrorMessage } from "../services/api";
 import { Plus, X, FileText, Trash2 } from "lucide-react";
 
 export default function Invoices() {
@@ -15,6 +15,7 @@ export default function Invoices() {
     items: [{ description: "", quantity: "1", unitPrice: "" }]
   });
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     if (businessId) {
@@ -68,6 +69,7 @@ export default function Invoices() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setFormError("");
     try {
       await api.post(`/businesses/${businessId}/Invoices`, {
         customerId: form.customerId ? parseInt(form.customerId) : null,
@@ -83,19 +85,31 @@ export default function Invoices() {
       setForm({ customerId: "", dueDate: "", taxRate: "20", notes: "", items: [{ description: "", quantity: "1", unitPrice: "" }] });
       setShowForm(false);
       loadInvoices();
-    } catch {}
+    } catch (err) {
+      setFormError(getErrorMessage(err, "Fatura oluşturulamadı"));
+    }
     setLoading(false);
   };
 
   const handleStatusChange = async (invoiceId: number, status: string) => {
-    await api.put(`/businesses/${businessId}/Invoices/${invoiceId}/status`, { status });
+    try {
+      await api.put(`/businesses/${businessId}/Invoices/${invoiceId}/status`, { status });
+    } catch (err) {
+      window.alert(getErrorMessage(err, "Fatura durumu güncellenemedi"));
+      return;
+    }
     loadInvoices();
     if (selectedInvoice?.id === invoiceId) loadInvoiceDetail(invoiceId);
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Bu faturayı silmek istediğinize emin misiniz?")) {
-      await api.delete(`/businesses/${businessId}/Invoices/${id}`);
+      try {
+        await api.delete(`/businesses/${businessId}/Invoices/${id}`);
+      } catch (err) {
+        window.alert(getErrorMessage(err, "Fatura silinemedi"));
+        return;
+      }
       setSelectedInvoice(null);
       loadInvoices();
     }
@@ -246,6 +260,7 @@ export default function Invoices() {
               <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
             </div>
             <form onSubmit={handleCreate}>
+              {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{formError}</div>}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Müşteri</label>

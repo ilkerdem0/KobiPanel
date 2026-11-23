@@ -47,11 +47,16 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ===== CORS (React frontend icin) =====
+// Production'da Cors__AllowedOrigins__0, Cors__AllowedOrigins__1 ... env var'larıyla verilir
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (allowedOrigins is not { Length: > 0 })
+    throw new InvalidOperationException("Cors:AllowedOrigins tanımlı değil.");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
