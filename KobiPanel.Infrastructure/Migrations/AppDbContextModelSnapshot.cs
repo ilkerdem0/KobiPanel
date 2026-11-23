@@ -239,9 +239,10 @@ namespace KobiPanel.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BusinessId");
-
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("BusinessId", "InvoiceNumber")
+                        .IsUnique();
 
                     b.ToTable("Invoices");
                 });

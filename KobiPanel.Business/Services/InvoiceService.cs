@@ -19,16 +19,13 @@ public class InvoiceService
             !await _context.Customers.AnyAsync(c => c.Id == customerId.Value && c.BusinessId == businessId))
             throw new Exception("Müşteri bulunamadı.");
 
-        var invoiceCount =await _context.Invoices.CountAsync(i => i.BusinessId == businessId);
-        var invoiceNumber = $"KBP-{DateTime.UtcNow:yyyy}-{(invoiceCount + 1):D4}";
-
         var subTotal = items.Sum(i => i.Quantity * i.UnitPrice);
         var taxAmount = subTotal * taxRate / 100;
         var totalAmount = subTotal + taxAmount;
 
         var invoice = new Invoice
         {
-            InvoiceNumber = invoiceNumber,
+            InvoiceNumber = await GenerateInvoiceNumberAsync(businessId),
             InvoiceDate = DateTime.UtcNow,
             DueDate = dueDate,
             SubTotal = subTotal,
@@ -49,9 +46,46 @@ public class InvoiceService
         };
 
         _context.Invoices.Add(invoice);
-        await _context.SaveChangesAsync();
+
+        // Aynı anda gelen iki istek aynı numarayı alırsa unique index (BusinessId, InvoiceNumber)
+        // ikincisini reddeder; yeni numarayla tekrar denenir.
+        const int maxAttempts = 3;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await _context.SaveChangesAsync();
+                break;
+            }
+            catch (DbUpdateException) when (attempt < maxAttempts)
+            {
+                invoice.InvoiceNumber = await GenerateInvoiceNumberAsync(businessId);
+            }
+        }
 
         return await MapToResponse(invoice);
+    }
+
+    /// <summary>
+    /// KBP-{yıl}-{sıra}. Sıra her yıl ve her işletme için 1'den başlar.
+    /// Silinmiş faturalar da sayılır, böylece bir numara asla tekrar kullanılmaz.
+    /// </summary>
+    private async Task<string> GenerateInvoiceNumberAsync(int businessId)
+    {
+        var prefix = $"KBP-{DateTime.UtcNow:yyyy}-";
+
+        var existingNumbers = await _context.Invoices
+            .IgnoreQueryFilters()
+            .Where(i => i.BusinessId == businessId && i.InvoiceNumber.StartsWith(prefix))
+            .Select(i => i.InvoiceNumber)
+            .ToListAsync();
+
+        var lastSequence = existingNumbers
+            .Select(n => int.TryParse(n.AsSpan(prefix.Length), out var seq) ? seq : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return $"{prefix}{lastSequence + 1:D4}";
     }
 
     public async Task<object> GetAllAsync(int businessId, int page, int pageSize, string? status)

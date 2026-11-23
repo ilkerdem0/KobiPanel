@@ -21,6 +21,18 @@ dotnet ef database update --project KobiPanel.Infrastructure --startup-project K
 ```
 Connection string (`appsettings.json`) targets a local SQL Server `KobiPanelDb` with Trusted_Connection.
 
+The JWT secret is not in the repo; the API refuses to start without a ≥32-byte `JwtSettings:Secret`. Locally it comes from user-secrets, in production from the `JwtSettings__Secret` env var:
+```bash
+dotnet user-secrets set "JwtSettings:Secret" "<min 32 chars>" --project KobiPanel.API
+```
+
+Tests (xUnit integration tests in `KobiPanel.Tests`, `WebApplicationFactory<Program>` + EF InMemory, no SQL Server needed):
+```bash
+dotnet test KobiPanel.sln
+dotnet test KobiPanel.Tests --filter "FullyQualifiedName~InvoiceNumberTests"   # single class/test
+```
+`KobiPanelFactory` swaps the DbContext and injects a test JWT secret; `TestUser.CreateAsync` registers a user with its own business and an authenticated client.
+
 Frontend (from `kobipanel-web/`):
 ```bash
 npm install
@@ -29,7 +41,7 @@ npm run build
 npm test                                   # Jest via react-scripts (watch mode)
 npm test -- --watchAll=false -t "<name>"   # single test, non-interactive
 ```
-There are no backend test projects and no CI workflows (`.github/workflows/` is empty).
+There are no CI workflows (`.github/workflows/` is empty).
 
 ## Architecture
 
@@ -40,7 +52,9 @@ Layered solution; project references flow API → Business → Infrastructure �
 - **KobiPanel.Business** — concrete service classes (no interfaces) that use `AppDbContext` directly; no repository layer. Services return anonymous objects (`Task<object>`) rather than DTOs, and signal errors by `throw new Exception("<Turkish message>")`. Every new service must be registered manually with `AddScoped` in `KobiPanel.API/Program.cs`.
 - **KobiPanel.API** — thin controllers. Request models are `record` types nested inside the controller. Controllers wrap service calls in `try/catch` and map exceptions to `BadRequest`/`NotFound` with `{ message }`.
 
-Multi-tenancy: everything except Auth and Businesses is scoped under `api/businesses/{businessId}/[controller]`, and services filter by `BusinessId`. Ownership of `{businessId}` is enforced by the `[BusinessOwner]` filter (`KobiPanel.API/Filters/BusinessOwnerAttribute.cs`, backed by `BusinessService.IsOwnerAsync`), which returns 404 for businesses the caller doesn't own. Any new business-scoped controller must carry `[BusinessOwner]` next to `[Authorize]`. Services must also verify that foreign keys taken from the request body (`customerId`, `categoryId`, …) belong to the same `businessId`.
+Multi-tenancy: everything except Auth and Businesses is scoped under `api/businesses/{businessId}/[controller]`, and services filter by `BusinessId`. Invoice numbers are `KBP-{year}-{seq:D4}` per business; `InvoiceService.GenerateInvoiceNumberAsync` counts soft-deleted invoices too (`IgnoreQueryFilters`) so numbers are never reused, backed by a unique index on `(BusinessId, InvoiceNumber)` with a retry on conflict.
+
+Ownership of `{businessId}` is enforced by the `[BusinessOwner]` filter (`KobiPanel.API/Filters/BusinessOwnerAttribute.cs`, backed by `BusinessService.IsOwnerAsync`), which returns 404 for businesses the caller doesn't own. Any new business-scoped controller must carry `[BusinessOwner]` next to `[Authorize]`. Services must also verify that foreign keys taken from the request body (`customerId`, `categoryId`, …) belong to the same `businessId`.
 
 Auth: JWT bearer (settings in `JwtSettings` of `appsettings.json`) plus `RefreshToken` entity; passwords hashed with BCrypt in `AuthService`. CORS policy `AllowFrontend` allows only `http://localhost:3000`.
 

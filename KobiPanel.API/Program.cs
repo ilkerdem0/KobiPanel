@@ -1,4 +1,4 @@
-using KobiPanel.Infrastructure.Data;
+﻿using KobiPanel.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -14,7 +14,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // ===== JWT AUTHENTICATION =====
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
+// Secret repoda tutulmaz: geliştirmede `dotnet user-secrets`, production'da
+// JwtSettings__Secret environment variable'ı ile verilir.
+var jwtSecret = jwtSettings["Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || Encoding.UTF8.GetByteCount(jwtSecret) < 32)
+    throw new InvalidOperationException(
+        "JwtSettings:Secret tanımlı değil veya 32 byte'tan kısa. " +
+        "Geliştirme için: dotnet user-secrets set \"JwtSettings:Secret\" \"<en az 32 karakter>\" --project KobiPanel.API");
+var secretKey = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -60,7 +67,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "KobiPanel API",
         Version = "v1",
-        Description = "K���k ��letme Y�netim Sistemi API"
+        Description = "Küçük İşletme Yönetim Sistemi API"
     });
 
     // Swagger'da JWT token girebilmek icin
@@ -106,3 +113,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Entegrasyon testlerinde WebApplicationFactory<Program> için gerekli
+public partial class Program { }

@@ -112,6 +112,7 @@ public class AppDbContext : DbContext
             entity.Property(i => i.TaxAmount).HasPrecision(18, 2);
             entity.Property(i => i.TotalAmount).HasPrecision(18, 2);
             entity.Property(i => i.Status).HasMaxLength(50);
+            entity.HasIndex(i => new { i.BusinessId, i.InvoiceNumber }).IsUnique();
 
             entity.HasOne(i => i.Business)
                   .WithMany(b => b.Invoices)
