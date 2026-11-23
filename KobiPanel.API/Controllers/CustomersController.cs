@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KobiPanel.Business.Services;
+using KobiPanel.API.Filters;
 
 namespace KobiPanel.API.Controllers;
 
 [ApiController]
 [Route("api/businesses/{businessId}/[controller]")]
 [Authorize]
+[BusinessOwner]
 public class CustomersController : ControllerBase
 {
     private readonly CustomerService _customerService;

@@ -33,6 +33,9 @@ public class BusinessService
         return MapToResponse(business);
     }
 
+    public Task<bool> IsOwnerAsync(int userId, int businessId) =>
+        _context.Businesses.AnyAsync(b => b.Id == businessId && b.OwnerId == userId);
+
     public async Task<List<object>> GetUserBusinessesAsync(int userId)
     {
         var businesses = await _context.Businesses

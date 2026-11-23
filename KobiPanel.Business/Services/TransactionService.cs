@@ -15,6 +15,14 @@ public class TransactionService
 
     public async Task<object> CreateAsync(int businessId, string description, decimal amount, string type, DateTime transactionDate, string? paymentMethod, int? categoryId, int? customerId, bool isScheduled, DateTime? dueDate)
     {
+        if (customerId.HasValue &&
+            !await _context.Customers.AnyAsync(c => c.Id == customerId.Value && c.BusinessId == businessId))
+            throw new Exception("Müşteri bulunamadı.");
+
+        if (categoryId.HasValue &&
+            !await _context.TransactionCategories.AnyAsync(c => c.Id == categoryId.Value && c.BusinessId == businessId))
+            throw new Exception("Kategori bulunamadı.");
+
         var paymentStatus = "Completed";
         if (isScheduled && dueDate.HasValue)
         {

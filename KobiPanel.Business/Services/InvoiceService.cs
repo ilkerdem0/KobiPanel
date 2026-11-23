@@ -15,7 +15,11 @@ public class InvoiceService
 
     public async Task<object> CreateAsync(int businessId, int? customerId, DateTime? dueDate, decimal taxRate, string? notes, List<InvoiceItemInput> items)
     {
-        var invoiceCount = await _context.Invoices.CountAsync(i => i.BusinessId == businessId);
+        if (customerId.HasValue &&
+            !await _context.Customers.AnyAsync(c => c.Id == customerId.Value && c.BusinessId == businessId))
+            throw new Exception("Müşteri bulunamadı.");
+
+        var invoiceCount =await _context.Invoices.CountAsync(i => i.BusinessId == businessId);
         var invoiceNumber = $"KBP-{DateTime.UtcNow:yyyy}-{(invoiceCount + 1):D4}";
 
         var subTotal = items.Sum(i => i.Quantity * i.UnitPrice);
